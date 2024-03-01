@@ -2,6 +2,7 @@
 
 import Comment from './comment.model.js';
 
+
 export const test = (req, res) => {
     console.log('test is running');
     return res.send({ message: 'Test is running' });
@@ -10,10 +11,10 @@ export const test = (req, res) => {
 // Controlador para crear un nuevo comentario
 export const createComment = async (req, res) => {
     try {
-        let { post, text } = req.body;
+        let { comment, text } = req.body;
         let user = req.user._id; // Se asume que el usuario se encuentra autenticado y su ID está disponible en req.user
 
-        let newComment = await Comment.create({ user, post, text });
+        let newComment = await Comment.create({ user, comment, text });
         res.status(201).send({ message: 'Comment created successfully', comment: newComment });
     } catch (err) {
         console.error(err);
@@ -50,23 +51,23 @@ export const editComment = async (req, res) => {
 // Controlador para eliminar un comentario
 export const deleteComment = async (req, res) => {
     try {
-        let id = req.params.id;
-
-        let comment = await Comment.findById(id);
-        if (!comment) {
-            return res.status(404).send({ message: 'Comment not found' });
-        }
-
-        // Verificar si el usuario es el autor del comentario
-        if (comment.user.toString() !== req.user._id.toString()) {
-            return res.status(403).send({ message: 'You do not have permission to delete this comment' });
-        }
-
-        await comment.remove();
-
-        res.send({ message: 'Comment deleted successfully' });
+        let { id } = req.params
+        let uid = req.user._id
+ 
+ 
+        // Verificar si la publicación existe y si el usuario es el propietario
+        let comment = await Comment.findOne({ _id: id, user: uid });
+        if (!comment)
+            return res.status(404).send({ message: 'Comment not found or you are not authorized to delete it' });
+ 
+        // Eliminar la comentario
+        let deletedComment = await Comment.findOneAndDelete({ _id: id, user: uid });
+        if (!deletedComment)
+            return res.status(500).send({ message: 'Error deleting comment' });
+ 
+        return res.send({ message: 'Comment deleted successfully' });
     } catch (err) {
         console.error(err);
-        res.status(500).send({ message: 'Error deleting comment' });
+        return res.status(500).send({ message: 'Error deleting comment' });
     }
 };
