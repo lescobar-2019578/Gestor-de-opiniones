@@ -15,7 +15,7 @@ export const register = async (req, res) => {
 
         data.password = await encrypt(data.password);
 
-        data.role = 'USER'; // Cambiado a 'USER' en lugar de 'ADMIN' por defecto
+        data.role = 'USER'; 
 
         let user = new User(data);
         await user.save();
@@ -23,7 +23,7 @@ export const register = async (req, res) => {
         return res.send({ message: `Registered user successfully. You can log in with username: ${user.username}` });
     } catch (err) {
         console.error(err);
-        return res.status(500).send({ message: 'Error registering user', err: err });
+        return res.status(500).send({ message: 'Error registering user'});
     }
 };
 
@@ -59,7 +59,7 @@ export const login = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
-    try {
+    try {       
         let { id } = req.params;
         let data = req.body;
 
@@ -72,25 +72,26 @@ export const updateUser = async (req, res) => {
             { new: true }
         );
 
-        if (!updatedUser) return res.status(401).send({ message: 'User not found or not updated' });
+        if (!updatedUser) 
+            return res.status(401).send({ message: 'User not found or not updated' });
 
         return res.send({ message: 'Updated user', updatedUser });
     } catch (err) {
         console.error(err);
-        if (err.keyValue && err.keyValue.username) return res.status(400).send({ message: `Username ${err.keyValue.username} is already taken` });
+        if (err.keyValue && err.keyValue.username) return res.status(400).send({ message: `Username ${err.keyValue.username} is already token` });
         return res.status(500).send({ message: 'Error updating account', error: err });
     }
 };
 
 export const changePassword = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { oldPassword, newPassword } = req.body;
+        let { id } = req.params;
+        let { oldPassword, newPassword } = req.body;
 
-        const user = await User.findById(id);
+        let user = await User.findById(id);
         if (!user) return res.status(404).send({ message: 'User not found' });
 
-        const isPasswordValid = await checkPassword(oldPassword, user.password);
+        let isPasswordValid = await checkPassword(oldPassword, user.password);
         if (!isPasswordValid) return res.status(401).send({ message: 'Invalid old password' });
 
         user.password = await encrypt(newPassword);

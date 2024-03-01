@@ -10,7 +10,7 @@ export const test = (req, res) => {
     return res.send({ message: 'Test is running' })
 }
 
-// Controlador para crear una nueva publicación
+// Controlador para crear una nueva post
 export const savePost = async (req, res) => {
     try {
         let data = req.body
@@ -30,66 +30,63 @@ export const savePost = async (req, res) => {
     }
 };
 
-// Controlador para editar una publicación
+// Update de la post
 export const updatePost = async (req, res) => {
     try {
-        let { id } = req.params
-        let data = req.body
-        let update = checkUpdate(data, false)
-        let userToken = req.user._id.toString()
+        let { id } = req.params;
+        let data = req.body;
 
-        let post = await Post.findOne({ _id: id })
-        if (!post) {
-            return res.status(404).send({ message: 'Post not found' })
-        }
-        
-        //Compara si el usuario que esta enviando la solicitud es el mismo del comentario
-        if (post.user.toString() !== userToken) {
-            return res.status(403).send({ message: 'Unauthorized to delete this post' })
-        }
+        let update = checkUpdate(data, id);
+        if (!update) 
+            return res.status(400).send({ message: 'Se ha enviado algún dato que no se puede actualizar o falta algún dato' });
 
-        if (!update) {
-            return res.status(400).send({ message: 'Have submitted some data that cannot be updated or missing data' })
-        }
-        
-        let updatePost = await Post.findOneAndUpdate(
-            { _id: id },
-            data,
+        let post = await Post.findOne(
+            { _id: id},data
+        );
+
+        if (!post) 
+            return res.status(404).send({ message: 'Post no encontrada o no estás autorizado para actualizarla' });
+
+        let updatedPost = await Post.findOneAndUpdate(
+            { _id: id }, 
+            data, 
             { new: true }
-        ).populate('category', ['name', 'description'])
-        if (!updatePost) return res.status(404).send({ message: 'Publi not found and not updated' })
-        return res.send({ message: 'Post updated successfully', updatePost })
+        );
+
+        if (!updatedPost) 
+            return res.status(401).send({ message: 'La post no se encontró o no se actualizó' });
+
+        return res.send({ message: 'Post actualizada', updatedPost });
     } catch (err) {
         console.error(err);
-        return res.status(500).send({ message: 'Error updating psot'});
+        return res.status(500).send({ message: 'Error al actualizar la post' });
     }
-};
+}
 
-// Controlador para eliminar una publicación
+
+// Controlador para eliminar una post
 export const deletePost = async (req, res) => {
     try {
-        let { id } = req.params
-        let userToken  = req.user._id.toString();
-
-        let post = await Post.findOne({_id : id})
-        if (!post) {
-            return res.status(404).send({ message: 'The post not found' })
-        }
-
-        // Verificar si el usuario es el autor de la publicación
-        if (post.user.toString() !== userToken) {
-            return res.status(403).send({ message: 'Unautorized  to delete the post' });
-        }
-        await Opinion.remove({ post: id})
-
-        let deletedPost = await Post.deleteOne({ _id: id })
-            if (deletedPost.deletedCount === 0) return res.status(404).send({ message: 'Post not found and not deleted' })
-        return res.send({ message: 'The post deleted successfully' });
+        let { id } = req.params;
+        let uid = req.user._id
+ 
+ 
+        // Verificar si la post existe y si el usuario es el propietario
+        let post = await Post.findOne({ _id: id, user: uid });
+        if (!post)
+            return res.status(404).send({ message: 'Post not found or you are not authorized' });
+ 
+        // Eliminar la post
+        let deletedPost = await Post.findOneAndDelete({ _id: id, user: uid });
+        if (!deletedPost)
+            return res.status(500).send({ message: 'Error deleting post' });
+ 
+        return res.send({ message: 'Post deleted successfully' });
     } catch (err) {
         console.error(err);
-        return res.status(500).send({ message: 'ERROR deleting post', error: err.message });
+        return res.status(500).send({ message: 'Error deleting post' });
     }
-};
+}
 
 export const getPost = async(req, res) => {
     try {

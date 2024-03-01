@@ -50,9 +50,9 @@ export const editComment = async (req, res) => {
 // Controlador para eliminar un comentario
 export const deleteComment = async (req, res) => {
     try {
-        let commentId = req.params.id;
+        let id = req.params.id;
 
-        let comment = await Comment.findById(commentId);
+        let comment = await Comment.findById(id);
         if (!comment) {
             return res.status(404).send({ message: 'Comment not found' });
         }

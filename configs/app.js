@@ -7,7 +7,7 @@ import cors from 'cors'
 import userRouter from '../src/user/user.routes.js'
 import publicationRouter from '../src/publication/post.routes.js'
 import categoryRouter from  '../src/category/category.routes.js'
-
+import commentRouter from '../src/comment/comment.routes.js'
 const app = express()
 config()
 const port = process.env.PORT 
@@ -22,6 +22,7 @@ app.use(cors())
 // Routes
 app.use('/user', userRouter)
 app.use('/publication', publicationRouter)
+app.use('/comment', commentRouter)
 app.use('/category', categoryRouter)
 
 export const initServer = () => {

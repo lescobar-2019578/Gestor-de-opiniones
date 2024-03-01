@@ -58,11 +58,11 @@ export const updateCategory = async (req, res) => {
 // Eliminar una categoría
 export const deleteCategory = async (req, res) => {
     try {
-        const deletedCategory = await Category.findByIdAndDelete(req.params.id);
+        let deletedCategory = await Category.findByIdAndDelete(req.params.id);
         if (!deletedCategory) {
             return res.status(404).send({ error: 'Category not found' });
         }
-        res.status(200).send(deletedCategory);
+        return res.send({ message: 'The post deleted successfully' });
     } catch (error) {
         res.status(500).send({ error: 'Internal server error' });
     }

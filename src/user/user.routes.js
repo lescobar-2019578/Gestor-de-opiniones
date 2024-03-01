@@ -6,14 +6,16 @@ import {
     test,
     login, 
     updateUser, 
-    register
+    register,
+    changePassword
 } from './user.controller.js';
 
 const api = express.Router();
 
+api.get('/test', test)
 api.post('/register', register)
 api.post('/login', login)
-api.get('/test', test)
 api.put('/update/:id', [validateJwt], updateUser)
+api.put('/changePassword/:id', [validateJwt], changePassword)
 
 export default api
